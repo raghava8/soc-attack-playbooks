@@ -1,44 +1,79 @@
 # 🛡️ SOC Analyst Attack Playbooks
 
-> A structured knowledge base of cyber attacks encountered in daily SOC operations — covering detection, investigation, and remediation for each threat type.
+> Operational knowledge base of cyber attacks encountered in daily SOC work — built for analysts who need fast, reliable guidance during live incidents.
 
 **Maintained by:** [@raghava8](https://github.com/raghava8)  
-**Purpose:** Reference guide for SOC analysts handling real-world alerts and incidents  
-**SIEM Coverage:** Microsoft Sentinel · Splunk · Generic/Agnostic
+**SIEM:** Google SecOps / Chronicle (YARA-L 2.0 + UDM Search)  
+**Framework:** MITRE ATT&CK Enterprise  
 
 ---
 
 ## 📁 Repository Index
 
-| # | Attack Category | Common Alerts | Severity |
-|---|----------------|---------------|----------|
-| 01 | [Phishing & Email Attacks](./01-Phishing-Email-Attacks/) | Suspicious email, malicious link click, attachment execution | 🔴 High |
-| 02 | [Malware & Ransomware](./02-Malware-Ransomware/) | AV alert, file encryption, C2 communication | 🔴 Critical |
-| 03 | [Identity & Credential Attacks](./03-Identity-Credential-Attacks/) | Brute force, password spray, MFA bypass, token theft | 🔴 High |
-| 04 | [Network Attacks (DDoS, MITM)](./04-Network-Attacks/) | Traffic spike, ARP spoofing, lateral movement | 🟠 High |
-| 05 | [Endpoint Threats & LOLBins](./05-Endpoint-Threats-LOLBins/) | PowerShell abuse, WMI persistence, living-off-the-land | 🔴 High |
-| 06 | [Cloud & SaaS Attacks](./06-Cloud-SaaS-Attacks/) | Impossible travel, OAuth abuse, storage exfiltration | 🔴 Critical |
-| 07 | [Web Application Attacks](./07-Web-Application-Attacks/) | SQLi, XSS, SSRF, path traversal | 🟠 High |
+| # | Attack Category | Severity | MITRE Tactics |
+|---|----------------|----------|---------------|
+| [01](./01-Phishing-Email-Attacks/) | Phishing & Email Attacks | 🔴 High | Initial Access · Execution |
+| [02](./02-Malware-Ransomware/) | Malware & Ransomware | 🔴 Critical | Execution · Persistence · Impact |
+| [03](./03-Identity-Credential-Attacks/) | Identity & Credential Attacks | 🔴 High | Credential Access · Persistence |
+| [04](./04-Network-Attacks/) | Network Attacks (DDoS, MITM) | 🟠 High | Discovery · Lateral Movement · Impact |
+| [05](./05-Cloud-SaaS-Attacks/) | Cloud & SaaS Attacks | 🔴 Critical | Initial Access · Collection · Exfiltration |
+| [06](./06-Web-Application-Attacks/) | Web Application Attacks | 🟠 High | Initial Access · Execution |
 
 ---
 
-## 🧭 How to Use This Repo
+## 📂 Each Playbook Structure
 
-Each folder contains a `README.md` with the following structure:
-
-1. **Overview** — What the attack is and how it works
-2. **Attack Techniques** — Specific TTPs (mapped to MITRE ATT&CK where applicable)
-3. **How to Identify in Logs** — Log sources, key indicators, SIEM queries
-4. **Remediation Steps** — Immediate containment + long-term fixes
-5. **SOC Analyst Actions** — Step-by-step response workflow
-6. **References** — MITRE ATT&CK, vendor advisories, CVEs
-
----
-
-## 🔖 MITRE ATT&CK Coverage
-
-This repo maps to the [MITRE ATT&CK Enterprise Framework](https://attack.mitre.org/). Each playbook includes relevant Tactic and Technique IDs.
+```
+attack-category/
+├── README.md                        ← Overview, MITRE mapping, quick reference
+├── description/
+│   └── overview.md                  ← How the attack works, variants, threat actor TTPs
+├── detection/
+│   └── chronicle-queries.md         ← Google SecOps YARA-L 2.0 rules + UDM hunt queries
+├── remediation/
+│   └── steps.md                     ← Immediate containment + long-term hardening
+└── analyst-actions/
+    └── workflow.md                  ← Step-by-step SOC response checklist
+```
 
 ---
 
-*Contributions welcome. If you work in SOC and want to add a new attack type or improve detection logic, feel free to open a PR.*
+## 🔎 SIEM: Google SecOps / Chronicle
+
+All detection content in this repo uses:
+
+| Query Type | Purpose |
+|------------|---------|
+| **YARA-L 2.0** | Persistent detection rules that generate alerts in Chronicle |
+| **UDM Search** | Ad-hoc hunting in the Chronicle UI using normalised fields |
+
+### Core UDM Fields Referenced Across Playbooks
+
+| UDM Field | Description |
+|-----------|-------------|
+| `metadata.event_type` | Event category (USER_LOGIN, NETWORK_HTTP, PROCESS_LAUNCH, etc.) |
+| `principal.user.userid` | Acting user account |
+| `principal.ip` | Source IP address |
+| `principal.hostname` | Source hostname |
+| `target.hostname` | Destination hostname |
+| `target.url` | Full URL accessed |
+| `target.user.email_addresses` | Recipient email address |
+| `network.email.from` | Sender email address |
+| `network.application_protocol` | Protocol (HTTP, DNS, SMTP, etc.) |
+| `security_result.action` | ALLOW / BLOCK / UNKNOWN |
+| `src.process.command_line` | Process command line arguments |
+| `src.process.file.full_path` | Process executable path |
+| `principal.process.parent_process.file.full_path` | Parent process path |
+
+---
+
+## 🧭 How to Use During an Incident
+
+1. **Active alert** → Open `analyst-actions/workflow.md` first
+2. **Proactive hunting** → Run queries from `detection/chronicle-queries.md` in Chronicle UDM Search
+3. **Containment** → Follow `remediation/steps.md`
+4. **Context** → Read `description/overview.md`
+
+---
+
+*Contributions welcome — open a PR to add attack types, improve YARA-L rules, or update remediation steps.*
